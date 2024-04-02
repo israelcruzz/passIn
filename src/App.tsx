@@ -47,7 +47,7 @@ function App() {
 
                   <td className="px-2.5 py-3 text-gray-200">7 days ago</td>
 
-                  <td className="px-2.5 py-3">
+                  <td className="px-2.5 py-3 text-right">
                     <button className="border rounded-[6px] border-white/10 bg-black/20 p-1.5">
                       <Ellipsis size={16} />
                     </button>
