@@ -1,6 +1,9 @@
 import { Search } from "lucide-react";
+import { ComponentProps } from "react";
 
-export function AttendeeList() {
+interface AttendeeListProps extends ComponentProps<"input"> {}
+
+export function AttendeeList({ ...rest }: AttendeeListProps) {
   return (
     <section className="flex gap-6">
       <h1 className="text-2xl text-white font-bold">Participantes</h1>
@@ -9,6 +12,7 @@ export function AttendeeList() {
         <Search className="size-4 text-emerald-300" />
 
         <input
+          {...rest}
           type="text"
           className="flex-1 bg-transparent outline-none"
           placeholder="Buscar participante..."

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { AttendeeList } from "./components/attendeeList";
 import { Header } from "./components/header";
 import {
@@ -12,13 +13,36 @@ import { TableHeader } from "./components/table/table-header";
 import { TableCeil } from "./components/table/table-ceil";
 import { TableRow } from "./components/table/table-row";
 import { IconButton } from "./components/icon-button/icon-button";
-import { attendees } from "./data/fake";
-import { useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import { api } from "./api/api";
+import { IAttendees } from "./@types/global";
 
 function App() {
+  const [attendees, setAttendees] = useState<IAttendees[]>([]);
   const [page, setPage] = useState<number>(1);
+  const [total, setTotal] = useState<number>(0);
+  const [query, setQuery] = useState('')
 
-  const totalPages = Math.ceil(attendees.length / 10);
+  const fetchAttendees = async () => {
+    const response = await api.get(
+      `http://localhost:3030/events/36c82a78-32f6-4367-b84f-bef24db224f7/attendees?pageIndex=${
+        page - 1
+      }&query=${query}`
+    );
+    setAttendees(response.data.attendees);
+    setTotal(response.data.total);
+  };
+
+  const handleSearchFetchAttendees = (event: ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value)
+    setPage(1)
+  }
+
+  useEffect(() => {
+    fetchAttendees();
+  }, [page, query]);
+
+  const totalPages = Math.ceil(total / 10);
 
   const goToPreviusPage = () => {
     setPage((prev) => prev - 1);
@@ -39,7 +63,7 @@ function App() {
   return (
     <div className="max-w-[1216px] mx-auto flex flex-col gap-6 py-6">
       <Header />
-      <AttendeeList />
+      <AttendeeList onChange={(e) => handleSearchFetchAttendees(e)} />
 
       <Table className="w-full">
         <thead>
@@ -61,56 +85,56 @@ function App() {
         </thead>
 
         <tbody>
-          {attendees
-            .slice((page - 1) * 10, page * 10)
-            .map((attendees, index) => {
-              return (
-                <TableRow
-                  className="border-b border-t border-white/10"
-                  key={index}
-                >
-                  <TableCeil className="py-3 px-2.5 text-center">
-                    <input type="checkbox" />
-                  </TableCeil>
+          {attendees.map((attendees, index) => {
+            return (
+              <TableRow
+                className="border-b border-t border-white/10"
+                key={index}
+              >
+                <TableCeil className="py-3 px-2.5 text-center">
+                  <input type="checkbox" />
+                </TableCeil>
 
-                  <TableCeil className="px-2.5 py-3 text-gray-200">
-                    {attendees.id}
-                  </TableCeil>
+                <TableCeil className="px-2.5 py-3 text-gray-200">
+                  {attendees.id}
+                </TableCeil>
 
-                  <TableCeil className="px-2.5 py-3">
-                    <div>
-                      <h1 className="text-white font-semibold">
-                        {attendees.name}
-                      </h1>
-                      <span className="text-gray-200">{attendees.email}</span>
-                    </div>
-                  </TableCeil>
+                <TableCeil className="px-2.5 py-3">
+                  <div>
+                    <h1 className="text-white font-semibold">
+                      {attendees.name}
+                    </h1>
+                    <span className="text-gray-200">{attendees.email}</span>
+                  </div>
+                </TableCeil>
 
-                  <TableCeil className="px-2.5 py-3 text-gray-200">
-                    {attendees.createdAt.toISOString()}
-                  </TableCeil>
+                <TableCeil className="px-2.5 py-3 text-gray-200">
+                  {attendees.createdAt && attendees.createdAt.toString()}
+                </TableCeil>
 
-                  <TableCeil className="px-2.5 py-3 text-gray-200">
-                    {attendees.checkedInAt.toISOString()}
-                  </TableCeil>
+                <TableCeil className="px-2.5 py-3 text-gray-200">
+                  {attendees.checkedInAt
+                    ? attendees.checkedInAt.toString()
+                    : "Não fez check-in"}
+                </TableCeil>
 
-                  <TableCeil className="px-2.5 py-3 text-right">
-                    <IconButton
-                      transparent
-                      className="border rounded-[6px] border-white/10 bg-black/20 p-1.5"
-                    >
-                      <Ellipsis size={16} />
-                    </IconButton>
-                  </TableCeil>
-                </TableRow>
-              );
-            })}
+                <TableCeil className="px-2.5 py-3 text-right">
+                  <IconButton
+                    transparent
+                    className="border rounded-[6px] border-white/10 bg-black/20 p-1.5"
+                  >
+                    <Ellipsis size={16} />
+                  </IconButton>
+                </TableCeil>
+              </TableRow>
+            );
+          })}
         </tbody>
 
         <tfoot>
           <tr>
             <TableCeil colSpan={3} className="px-2.5 py-3">
-              Showing 10 of {attendees.length} items
+              Showing {attendees.length} of {total} items
             </TableCeil>
             <TableCeil colSpan={3} className="px-2.5 py-3 text-right">
               <div className="inline-flex items-center gap-8">
